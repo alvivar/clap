@@ -15,7 +15,7 @@ func main() {
 	args := flag.Args()
 	if len(args) < 1 {
 		fmt.Println("👏 Clap slaps all your files into one!")
-		fmt.Println("Usage: program [-o filename] <path> [extensions...]")
+		fmt.Println("Usage: clap [-o filename] <path> [extensions...]")
 		os.Exit(1)
 	}
 
