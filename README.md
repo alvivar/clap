@@ -101,18 +101,6 @@ Clap creates a well-organized output file with clear separators:
 -   **Backup** - Create text-based snapshots of your projects
 -   **Code Analysis** - Prepare files for analysis tools
 
-## 🤝 Contributing
-
-Contributions are welcome! Feel free to open issues or submit pull requests.
-
 ## 📝 License
 
 MIT License - feel free to use this in your projects!
-
-## 💡 Why "Clap"?
-
-Because it claps all your files together into one! 👏
-
----
-
-Made with ❤️ for developers who need to wrangle multiple files
