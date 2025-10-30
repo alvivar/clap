@@ -11,8 +11,6 @@ A complete guide to starting and structuring a project with Go (Golang).
 -   [Building and Running](#building-and-running)
 -   [Best Practices](#best-practices)
 
----
-
 ## Prerequisites
 
 ### 1. Install Go
@@ -26,8 +24,6 @@ go version
 ```
 
 You should see output like: `go version go1.21.x windows/amd64`
-
----
 
 ## Initial Setup
 
@@ -71,8 +67,6 @@ func main() {
 -   `package main` declares this as an executable program
 -   `main()` function is the entry point
 -   Import statements bring in standard library or external packages
-
----
 
 ## Project Structure
 
@@ -150,8 +144,6 @@ func main() {
 }
 ```
 
----
-
 ## Managing Dependencies
 
 ### Adding Dependencies
@@ -194,8 +186,6 @@ go mod tidy
 go list -m all        # List all dependencies
 go mod graph          # Show dependency graph
 ```
-
----
 
 ## Building and Running
 
@@ -256,8 +246,6 @@ go test ./...         # Test all packages
 go test -v ./...      # Verbose output
 go test -cover ./...  # With coverage
 ```
-
----
 
 ## Best Practices
 
@@ -360,8 +348,6 @@ go get -u             # Update all dependencies
 go clean              # Remove build artifacts
 ```
 
----
-
 ## Quick Start Template
 
 Here's a quick template to start any Go project:
@@ -394,9 +380,7 @@ git add .
 git commit -m "Initial commit"
 ```
 
----
-
-## Resources
+## Additional Resources
 
 -   **Official Documentation**: [https://go.dev/doc/](https://go.dev/doc/)
 -   **Go Tour**: [https://go.dev/tour/](https://go.dev/tour/)
@@ -404,17 +388,13 @@ git commit -m "Initial commit"
 -   **Go by Example**: [https://gobyexample.com/](https://gobyexample.com/)
 -   **Standard Library**: [https://pkg.go.dev/std](https://pkg.go.dev/std)
 
----
-
 ## What's Next?
 
 After completing this primer:
 
-1. ✅ Complete the Go Tour for language fundamentals
-2. ✅ Read Effective Go for idiomatic patterns
-3. ✅ Build a small CLI tool or web API
-4. ✅ Learn about testing with the `testing` package
-5. ✅ Explore popular frameworks (Gin, Echo, Chi)
-6. ✅ Study concurrency with goroutines and channels
-
-Happy coding! 🚀
+1. Complete the Go Tour for language fundamentals
+2. Read Effective Go for idiomatic patterns
+3. Build a small CLI tool or web API
+4. Learn about testing with the `testing` package
+5. Explore popular frameworks (Gin, Echo, Chi)
+6. Study concurrency with goroutines and channels
