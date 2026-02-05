@@ -15,11 +15,15 @@ go build
 ## Usage
 
 ```bash
-clap [-o filename] <path> [filters...]
+clap [-o filename] <path> [ext <extensions...>] [sub <substrings...>]
 ```
 
-- `-o filename` sets the output file name (default: `clap.txt`). The file is created in `<path>`.
-- `filters` are case-sensitive substrings matched against each file’s base name (not just extensions).
+- `-o filename` sets the output file name (default: `clap.txt`). The file is created in the current working directory unless `-o` includes a path.
+- `ext` filters by file extension (case-insensitive). The dot prefix is optional.
+- `sub` filters by case-insensitive substring matches against each file’s base name.
+- When both `ext` and `sub` are provided, files must match both.
+
+After `<path>`, you can include an `ext` section and/or a `sub` section. Each section accepts multiple space-separated values.
 
 ### Examples
 
@@ -32,25 +36,31 @@ clap ./myproject
 Code review bundle (source files only):
 
 ```bash
-clap -o review.txt ./myproject .go .md
+clap -o review.txt ./myproject ext go md
 ```
 
 LLM context file (source + docs):
 
 ```bash
-clap -o context.txt ./src .js .jsx .ts .tsx .md
+clap -o context.txt ./src ext js jsx ts tsx md
 ```
 
 Documentation bundle:
 
 ```bash
-clap -o all-docs.md ./docs .md
+clap -o all-docs.md ./docs ext md
 ```
 
 Targeted analysis by filename substring:
 
 ```bash
-clap ./myproject _test .config
+clap ./myproject sub _test .config
+```
+
+Combined extension + substring filtering:
+
+```bash
+clap ./myproject ext go sub test
 ```
 
 ### Output Format

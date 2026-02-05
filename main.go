@@ -12,19 +12,32 @@ import (
 
 func main() {
 	outputFilename := flag.String("o", "clap.txt", "output filename")
+	flag.Usage = func() {
+		fmt.Println("👏 Clap slaps all your files into one!")
+		fmt.Println("Usage: clap [-o filename] <path> [ext <extensions...>] [sub <substrings...>]")
+		fmt.Println("  -o filename  output filename (default: clap.txt in current working directory)")
+		fmt.Println("Filters are case-insensitive. Extensions may include or omit the leading dot.")
+	}
 	flag.Parse()
 
 	args := flag.Args()
 	if len(args) < 1 {
-		fmt.Println("👏 Clap slaps all your files into one!")
-		fmt.Println("Usage: clap [-o filename] <path> [filters...]")
+		flag.Usage()
 		fmt.Println("Error: path is required")
 		os.Exit(1)
 	}
 
 	path := args[0]
-	filters := args[1:]
-	outputPath := filepath.Join(path, *outputFilename)
+	extFilters, subFilters, err := parseFilterArgs(args[1:])
+	if err != nil {
+		fmt.Printf("Error parsing filters: %v\n", err)
+		os.Exit(1)
+	}
+	outputPath, err := resolveOutputPath(*outputFilename)
+	if err != nil {
+		fmt.Printf("Error resolving output path: %v\n", err)
+		os.Exit(1)
+	}
 
 	outputFile, err := os.Create(outputPath)
 	if err != nil {
@@ -44,7 +57,16 @@ func main() {
 		}
 
 		// Skip directories, the output file itself, and files that don't match filters
-		if d.IsDir() || filePath == outputPath || !shouldPrintFile(filePath, filters) {
+		if d.IsDir() {
+			return nil
+		}
+
+		fileAbs, absErr := filepath.Abs(filePath)
+		if absErr == nil && fileAbs == outputPath {
+			return nil
+		}
+
+		if !shouldPrintFile(filePath, extFilters, subFilters) {
 			return nil
 		}
 
@@ -78,21 +100,102 @@ func main() {
 	fmt.Printf("Content written to %s\n", outputPath)
 }
 
-func shouldPrintFile(filePath string, filters []string) bool {
-	if len(filters) == 0 {
+func resolveOutputPath(outputFilename string) (string, error) {
+	if filepath.IsAbs(outputFilename) {
+		return filepath.Clean(outputFilename), nil
+	}
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Clean(filepath.Join(cwd, outputFilename)), nil
+}
+
+func parseFilterArgs(args []string) ([]string, []string, error) {
+	var extFilters []string
+	var subFilters []string
+
+	var state string
+	var lastKeyword string
+	var lastKeywordHasValue bool
+
+	for _, arg := range args {
+		arg = strings.TrimSpace(arg)
+		if arg == "" {
+			continue
+		}
+
+		switch arg {
+		case "ext", "sub":
+			if lastKeyword != "" && !lastKeywordHasValue {
+				return nil, nil, fmt.Errorf("%s requires at least one value", lastKeyword)
+			}
+			state = arg
+			lastKeyword = arg
+			lastKeywordHasValue = false
+		default:
+			if state == "" {
+				return nil, nil, fmt.Errorf("unexpected filter value %q; expected \"ext\" or \"sub\"", arg)
+			}
+			if state == "ext" {
+				normalized := normalizeExt(arg)
+				if normalized == "" {
+					continue
+				}
+				extFilters = append(extFilters, normalized)
+			} else {
+				subFilters = append(subFilters, strings.ToLower(arg))
+			}
+			lastKeywordHasValue = true
+		}
+	}
+
+	if lastKeyword != "" && !lastKeywordHasValue {
+		return nil, nil, fmt.Errorf("%s requires at least one value", lastKeyword)
+	}
+
+	return extFilters, subFilters, nil
+}
+
+func normalizeExt(ext string) string {
+	ext = strings.TrimSpace(ext)
+	ext = strings.TrimPrefix(ext, ".")
+	if ext == "" {
+		return ""
+	}
+	return strings.ToLower(ext)
+}
+
+func shouldPrintFile(filePath string, extFilters, subFilters []string) bool {
+	if len(extFilters) == 0 && len(subFilters) == 0 {
 		return true
 	}
 
 	fileName := filepath.Base(filePath)
-	for _, filter := range filters {
-		filter = strings.TrimSpace(filter)
-		if filter == "" {
-			continue
-		}
-		if strings.Contains(fileName, filter) {
-			return true
+	lowerName := strings.ToLower(fileName)
+
+	extOK := len(extFilters) == 0
+	if !extOK {
+		fileExt := strings.TrimPrefix(strings.ToLower(filepath.Ext(fileName)), ".")
+		for _, filter := range extFilters {
+			if filter == fileExt {
+				extOK = true
+				break
+			}
 		}
 	}
 
-	return false
+	subOK := len(subFilters) == 0
+	if !subOK {
+		for _, filter := range subFilters {
+			if strings.Contains(lowerName, filter) {
+				subOK = true
+				break
+			}
+		}
+	}
+
+	return extOK && subOK
 }
