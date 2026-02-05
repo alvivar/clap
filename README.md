@@ -1,26 +1,10 @@
-# 👏 Clap
+# Clap
 
-**Clap slaps all your files into one!**
+CLI tool that combines multiple files from a directory into a single output file.
 
-A blazingly fast CLI tool that combines multiple files from a directory into a single, organized output file. Perfect for sharing codebases with LLMs, conducting code reviews, or creating comprehensive documentation snapshots.
+## Build
 
-## ✨ Features
-
--   🚀 **Fast & Efficient** - Recursively walks through directories at lightning speed
--   🎯 **Smart Filtering** - Filter files by extension (supports multiple extensions)
--   📝 **Clear Formatting** - Each file is clearly separated with headers showing the file path
--   💪 **Flexible Output** - Customize the output filename to your needs
--   🔄 **Case-Insensitive** - Extensions work with or without dots (`.go` or `go`)
--   📊 **Progress Tracking** - See which files are being processed with size information
--   🌳 **Recursive Search** - Automatically traverses nested directories
-
-## 🚀 Installation
-
-```bash
-go install github.com/yourusername/clap@latest
-```
-
-Or build from source:
+Requirements: Go.
 
 ```bash
 git clone https://github.com/yourusername/clap.git
@@ -28,62 +12,48 @@ cd clap
 go build
 ```
 
-## 📖 Usage
-
-### Basic Usage
-
-Combine all files in a directory:
+## Usage
 
 ```bash
-clap /path/to/directory
+clap [-o filename] <path> [filters...]
 ```
 
-### Filter by Extensions
+- `-o filename` sets the output file name (default: `clap.txt`). The file is created in `<path>`.
+- `filters` are case-sensitive substrings matched against each file’s base name (not just extensions).
 
-Combine only specific file types:
+### Examples
+
+Full snapshot (all files):
 
 ```bash
-# Single extension
-clap /path/to/project .go
-
-# Multiple extensions
-clap /path/to/project .go .md .txt
-
-# Extensions work without dots too!
-clap /path/to/project go md txt
+clap ./myproject
 ```
 
-### Custom Output File
-
-Specify a custom output filename:
+Code review bundle (source files only):
 
 ```bash
-clap -o combined.txt /path/to/directory .js .ts
+clap -o review.txt ./myproject .go .md
 ```
 
-## 📚 Examples
-
-**Combine all Go files in a project:**
+LLM context file (source + docs):
 
 ```bash
-clap ./myproject .go
+clap -o context.txt ./src .js .jsx .ts .tsx .md
 ```
 
-**Create a codebase snapshot for AI:**
-
-```bash
-clap -o context.txt ./src .js .jsx .ts .tsx
-```
-
-**Gather all documentation:**
+Documentation bundle:
 
 ```bash
 clap -o all-docs.md ./docs .md
 ```
 
-## 📋 Output Format
+Targeted analysis by filename substring:
 
-Clap creates a well-organized output file with clear separators:
+```bash
+clap ./myproject _test .config
+```
+
+### Output Format
 
 ```
 === path/to/file1.go ===
@@ -92,15 +62,3 @@ Clap creates a well-organized output file with clear separators:
 === path/to/file2.go ===
 [file content]
 ```
-
-## 🎯 Use Cases
-
--   **AI Context Building** - Feed entire codebases to Large Language Models
--   **Code Reviews** - Share complete project snapshots
--   **Documentation** - Combine multiple markdown files into one
--   **Backup** - Create text-based snapshots of your projects
--   **Code Analysis** - Prepare files for analysis tools
-
-## 📝 License
-
-MIT License - feel free to use this in your projects!
