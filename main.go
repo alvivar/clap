@@ -33,9 +33,15 @@ func main() {
 		fmt.Printf("Error parsing filters: %v\n", err)
 		os.Exit(1)
 	}
-	outputPath, err := resolveOutputPath(*outputFilename)
+	outputPath, err := filepath.Abs(*outputFilename)
 	if err != nil {
 		fmt.Printf("Error resolving output path: %v\n", err)
+		os.Exit(1)
+	}
+
+	path, err = filepath.Abs(path)
+	if err != nil {
+		fmt.Printf("Error resolving path: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -61,8 +67,7 @@ func main() {
 			return nil
 		}
 
-		fileAbs, absErr := filepath.Abs(filePath)
-		if absErr == nil && fileAbs == outputPath {
+		if filePath == outputPath {
 			return nil
 		}
 
@@ -70,22 +75,16 @@ func main() {
 			return nil
 		}
 
-		info, err := d.Info()
-		if err != nil {
-			fmt.Printf("Error getting file info for %s: %v\n", filePath, err)
-			return nil
-		}
-		fmt.Printf("%s (%d bytes)\n", filePath, info.Size())
-
 		content, err := os.ReadFile(filePath)
 		if err != nil {
 			fmt.Printf("Error reading file %s: %v\n", filePath, err)
 			return nil
 		}
+		fmt.Printf("%s (%d bytes)\n", filePath, len(content))
 
-		// Consolidate write operations
-		if _, err := fmt.Fprintf(writer, "=== %s ===\n%s\n\n", filePath, content); err != nil {
-			fmt.Printf("Error writing to output file: %v\n", err)
+		writer.WriteString("=== " + filePath + " ===\n")
+		writer.Write(content)
+		if _, err := writer.WriteString("\n\n"); err != nil {
 			return err
 		}
 
@@ -100,26 +99,12 @@ func main() {
 	fmt.Printf("Content written to %s\n", outputPath)
 }
 
-func resolveOutputPath(outputFilename string) (string, error) {
-	if filepath.IsAbs(outputFilename) {
-		return filepath.Clean(outputFilename), nil
-	}
-
-	cwd, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-
-	return filepath.Clean(filepath.Join(cwd, outputFilename)), nil
-}
-
 func parseFilterArgs(args []string) ([]string, []string, error) {
 	var extFilters []string
 	var subFilters []string
 
 	var state string
-	var lastKeyword string
-	var lastKeywordHasValue bool
+	var hasValue bool
 
 	for _, arg := range args {
 		arg = strings.TrimSpace(arg)
@@ -129,12 +114,11 @@ func parseFilterArgs(args []string) ([]string, []string, error) {
 
 		switch arg {
 		case "ext", "sub":
-			if lastKeyword != "" && !lastKeywordHasValue {
-				return nil, nil, fmt.Errorf("%s requires at least one value", lastKeyword)
+			if state != "" && !hasValue {
+				return nil, nil, fmt.Errorf("%s requires at least one value", state)
 			}
 			state = arg
-			lastKeyword = arg
-			lastKeywordHasValue = false
+			hasValue = false
 		default:
 			if state == "" {
 				return nil, nil, fmt.Errorf("unexpected filter value %q; expected \"ext\" or \"sub\"", arg)
@@ -148,19 +132,18 @@ func parseFilterArgs(args []string) ([]string, []string, error) {
 			} else {
 				subFilters = append(subFilters, strings.ToLower(arg))
 			}
-			lastKeywordHasValue = true
+			hasValue = true
 		}
 	}
 
-	if lastKeyword != "" && !lastKeywordHasValue {
-		return nil, nil, fmt.Errorf("%s requires at least one value", lastKeyword)
+	if state != "" && !hasValue {
+		return nil, nil, fmt.Errorf("%s requires at least one value", state)
 	}
 
 	return extFilters, subFilters, nil
 }
 
 func normalizeExt(ext string) string {
-	ext = strings.TrimSpace(ext)
 	ext = strings.TrimPrefix(ext, ".")
 	if ext == "" {
 		return ""
