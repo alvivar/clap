@@ -17,13 +17,13 @@ func main() {
 	args := flag.Args()
 	if len(args) < 1 {
 		fmt.Println("👏 Clap slaps all your files into one!")
-		fmt.Println("Usage: clap [-o filename] <path> [extensions...]")
+		fmt.Println("Usage: clap [-o filename] <path> [filters...]")
 		fmt.Println("Error: path is required")
 		os.Exit(1)
 	}
 
 	path := args[0]
-	extensions := normalizeExtensions(args[1:])
+	filters := args[1:]
 	outputPath := filepath.Join(path, *outputFilename)
 
 	outputFile, err := os.Create(outputPath)
@@ -43,8 +43,8 @@ func main() {
 			return err
 		}
 
-		// Skip directories, the output file itself, and files that don't match extensions
-		if d.IsDir() || filePath == outputPath || !shouldPrintFile(filePath, extensions) {
+		// Skip directories, the output file itself, and files that don't match filters
+		if d.IsDir() || filePath == outputPath || !shouldPrintFile(filePath, filters) {
 			return nil
 		}
 
@@ -78,27 +78,21 @@ func main() {
 	fmt.Printf("Content written to %s\n", outputPath)
 }
 
-func normalizeExtensions(extensions []string) map[string]bool {
-	if len(extensions) == 0 {
-		return nil
-	}
-
-	extMap := make(map[string]bool, len(extensions))
-	for _, ext := range extensions {
-		if !strings.HasPrefix(ext, ".") {
-			ext = "." + ext
-		}
-		extMap[strings.ToLower(ext)] = true
-	}
-
-	return extMap
-}
-
-func shouldPrintFile(filePath string, extensions map[string]bool) bool {
-	if extensions == nil {
+func shouldPrintFile(filePath string, filters []string) bool {
+	if len(filters) == 0 {
 		return true
 	}
 
-	ext := strings.ToLower(filepath.Ext(filePath))
-	return extensions[ext]
+	fileName := filepath.Base(filePath)
+	for _, filter := range filters {
+		filter = strings.TrimSpace(filter)
+		if filter == "" {
+			continue
+		}
+		if strings.Contains(fileName, filter) {
+			return true
+		}
+	}
+
+	return false
 }
