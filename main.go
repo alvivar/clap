@@ -80,9 +80,18 @@ func main() {
 			fmt.Printf("Error reading file %s: %v\n", filePath, err)
 			return nil
 		}
-		fmt.Printf("%s (%d bytes)\n", filePath, len(content))
 
-		writer.WriteString("=== " + filePath + " ===\n")
+		displayPath := filePath
+		if relPath, relErr := filepath.Rel(path, filePath); relErr == nil {
+			displayPath = relPath
+		}
+		if displayPath == "." {
+			displayPath = filepath.Base(filePath)
+		}
+
+		fmt.Printf("%s (%d bytes)\n", displayPath, len(content))
+
+		writer.WriteString("=== " + displayPath + " ===\n")
 		writer.Write(content)
 		if _, err := writer.WriteString("\n\n"); err != nil {
 			return err

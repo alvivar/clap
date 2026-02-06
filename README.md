@@ -22,6 +22,7 @@ clap [-o filename] <path> [ext <extensions...>] [sub <substrings...>]
 - `ext` filters by file extension (case-insensitive). The dot prefix is optional.
 - `sub` filters by case-insensitive substring matches against each file’s base name.
 - When both `ext` and `sub` are provided, files must match both.
+- Paths written in output headers are relative to the scanned `<path>` root.
 
 After `<path>`, you can include an `ext` section and/or a `sub` section. Each section accepts multiple space-separated values.
 
