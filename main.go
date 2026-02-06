@@ -56,6 +56,7 @@ func main() {
 	writer := bufio.NewWriter(outputFile)
 	defer writer.Flush()
 
+	wroteAny := false
 	err = filepath.WalkDir(path, func(filePath string, d fs.DirEntry, err error) error {
 		if err != nil {
 			fmt.Printf("Error accessing path %s: %v\n", filePath, err)
@@ -91,11 +92,15 @@ func main() {
 
 		fmt.Printf("%s (%d bytes)\n", displayPath, len(content))
 
+		if wroteAny {
+			if _, err := writer.WriteString("\n\n"); err != nil {
+				return err
+			}
+		}
+		wroteAny = true
+
 		writer.WriteString("=== " + displayPath + " ===\n")
 		writer.Write(content)
-		if _, err := writer.WriteString("\n\n"); err != nil {
-			return err
-		}
 
 		return nil
 	})
